@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/scheduler.dart';
 
 class FaqUtil {
   /// Widget 转 Image
@@ -12,9 +11,13 @@ class FaqUtil {
     required T data,
     required Widget Function(T data) itemBuilder,
     required BuildContext context,
+    Future<void> Function(T data)? preCacheUtil,
     double pixelRatio = 2,
   }) async {
     try {
+      if (preCacheUtil != null) {
+        await preCacheUtil(data);
+      }
       final overlay = Overlay.of(context);
 
       final repaintKey = GlobalKey();
@@ -36,8 +39,7 @@ class FaqUtil {
 
       overlay.insert(entry);
 
-      /// 等待渲染完成
-      await waitRepaintBoundaryPainted(repaintKey).timeout(const Duration(milliseconds: 500));
+      await WidgetsBinding.instance.endOfFrame;
 
       final boundary = repaintKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
 
@@ -49,41 +51,5 @@ class FaqUtil {
     } catch (e) {
       return null;
     }
-  }
-
-  static Future<void> waitRepaintBoundaryPainted(
-    GlobalKey repaintKey, {
-    Duration timeout = const Duration(milliseconds: 500),
-  }) async {
-    Completer<void> completer = Completer<void>();
-    bool timedOut = false;
-
-    // 启动超时计时器
-    Future.delayed(timeout).then((_) {
-      if (!completer.isCompleted) {
-        timedOut = true;
-        completer.completeError(TimeoutException(
-          "Wait for RepaintBoundary paint timed out after $timeout",
-        ));
-      }
-    });
-
-    void checkPaint(_) {
-      if (timedOut) return;
-
-      final renderObj = repaintKey.currentContext?.findRenderObject();
-
-      if (renderObj is RenderRepaintBoundary && !renderObj.debugNeedsPaint) {
-        if (!completer.isCompleted) completer.complete();
-      } else {
-        // 下一帧继续检查
-        SchedulerBinding.instance.addPostFrameCallback(checkPaint);
-      }
-    }
-
-    // 从下一帧开始检查
-    SchedulerBinding.instance.addPostFrameCallback(checkPaint);
-
-    return completer.future;
   }
 }
