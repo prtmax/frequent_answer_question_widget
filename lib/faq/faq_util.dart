@@ -14,6 +14,7 @@ class FaqUtil {
     Future<void> Function(T data)? preCacheUtil,
     double pixelRatio = 2,
   }) async {
+    OverlayEntry? entry;
     try {
       if (preCacheUtil != null) {
         await preCacheUtil(data);
@@ -42,7 +43,7 @@ class FaqUtil {
         ),
       );
 
-      final entry = OverlayEntry(
+      entry = OverlayEntry(
         builder: (_) => Positioned(
           left: 0,
           top: MediaQuery.of(context).size.height,
@@ -61,10 +62,11 @@ class FaqUtil {
       final image = await boundary.toImage(pixelRatio: pixelRatio);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
 
-      entry.remove();
       return byteData?.buffer.asUint8List();
     } catch (e) {
       return null;
+    } finally {
+      entry?.remove();
     }
   }
 }
