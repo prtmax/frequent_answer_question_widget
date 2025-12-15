@@ -21,11 +21,24 @@ class FaqUtil {
       final overlay = Overlay.of(context);
 
       final repaintKey = GlobalKey();
+      final extra = pixelRatio.ceil().toDouble();
       final widget = RepaintBoundary(
         key: repaintKey,
-        child: SizedBox(
-          width: MediaQuery.of(context).size.width,
-          child: itemBuilder(data),
+        child: Stack(
+          children: [
+            SizedBox(
+              width: MediaQuery.of(context).size.width.floorToDouble(),
+              child: itemBuilder(data),
+            ),
+            // 补偿RepaintBoundary截图带来的高度精度损失问题
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: -extra,
+              height: extra * 2,
+              child: const ColoredBox(color: Colors.white),
+            ),
+          ],
         ),
       );
 
@@ -40,6 +53,8 @@ class FaqUtil {
       overlay.insert(entry);
 
       await WidgetsBinding.instance.endOfFrame;
+      // 加个保险
+      await Future<void>.delayed(Duration.zero);
 
       final boundary = repaintKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
 
