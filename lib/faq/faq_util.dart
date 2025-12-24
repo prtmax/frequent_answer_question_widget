@@ -18,8 +18,7 @@ class FaqUtil {
     OverlayEntry? entry;
     final repaintKey = GlobalKey();
 
-    // 强制增加的底部安全边框，例如 4 像素，以补偿精度误差
-    const double safetyPadding = 4.0;
+    double safetyPadding = pixelRatio.ceilToDouble();
 
     try {
       if (preCacheUtil != null) {
@@ -123,8 +122,7 @@ class FaqUtil {
     OverlayEntry? entry;
     final repaintKey = GlobalKey();
 
-    // 强制增加的底部安全边框，例如 4 像素，以补偿精度误差
-    const double safetyPadding = 4.0;
+    double safetyPadding = pixelRatio.ceilToDouble();
 
     try {
       if (preCacheUtil != null) {
